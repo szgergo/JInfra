@@ -1,6 +1,6 @@
 package io.jinfra.testing;
 
-import org.slf4j.Logger;
+import org.slf4j .Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -15,6 +15,10 @@ public class TestConstants {
             throw new IllegalArgumentException("Please use only single resource element. Use TestConstants#concatPaths for deeper paths");
          }
         return TEST_RESOURCE_BASE_PATH + File.separator + resource;
+    }
+
+    public static File getTestResourceAsFile(String resource) {
+        return new File(getTestResource(resource));
     }
 
     public static String concatPaths(String... pathElements) {

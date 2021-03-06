@@ -1,0 +1,28 @@
+version: '3.1'
+services :
+  db_healthcheck_incorrect:
+    image: postgres:9.6.21-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: roadmappio
+    healthcheck:
+      test: [ "CMD-SHELL", "false" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  admin_healthcheck_incorrect:
+    image: adminer
+    restart: always
+    depends_on:
+      db_healthcheck_incorrect:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 8080:8080

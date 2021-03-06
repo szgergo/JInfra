@@ -3,35 +3,28 @@ package io.jinfra.testing.docker.compose;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import io.jinfra.testing.docker.compose.api.DockerComposeValidatorErrorMessage;
+import io.jinfra.testing.docker.compose.utils.DockerComposeUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public class DockerComposeValidator {
 
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
-    private static final String SERVICES = "services";
-    private final File dockerComposeFile;
-    private final ObjectMapper objectMapper;
-    private final JsonSchemaFactory factory;
-    private final String dockerComposeSchemaFile;
-    private static final String DOCKER_COMPOSE_SCHEMA_FILE_NAME = "schema/docker-compose-schema.json";
+    public static final Charset UTF_8 = StandardCharsets.UTF_8;
     private static final Logger LOGGER = LoggerFactory.getLogger(DockerComposeValidator.class);
-    private static Optional<JsonNode> jsonNode;
+    private Optional<JsonNode> dockerComposeJsonNode;
 
     public DockerComposeValidator(File dockerComposeFile) {
-        jsonNode = Optional.empty();
         if (dockerComposeFile == null) {
             throw new IllegalArgumentException("Argument can't be null");
         }
@@ -39,82 +32,38 @@ public class DockerComposeValidator {
         if (!Files.exists(dockerComposeFilePath) || !Files.isRegularFile(dockerComposeFilePath)) {
             throw new IllegalArgumentException("File can't be found or not a file: " + dockerComposeFile);
         }
-        this.dockerComposeFile = dockerComposeFile;
-        this.objectMapper = new ObjectMapper(new YAMLFactory());
-        this.objectMapper.registerModules();
-        this.dockerComposeSchemaFile = readSchemaFile();
-        factory = JsonSchemaFactory
-                .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909))
-                .objectMapper(objectMapper)
-                .build();
-        if(isValid()) {
-            loadDockerComposeFile();
-        }
+        this.dockerComposeJsonNode = loadDockerComposeFile(dockerComposeFile);
     }
 
     public DockerComposeValidator(String filePath) {
         this(new File(filePath));
     }
 
-    public boolean isValid() {
-        try {
-            return factory
-                    .getSchema(dockerComposeSchemaFile)
-                    .validate(jsonNode.isPresent() ? jsonNode.get() : objectMapper.readTree(dockerComposeFile))
-                    .isEmpty();
-        } catch (Throwable exception) {
-            LOGGER.error("Error while trying to validate docker-compose file: ", exception);
-            return false;
-        }
-    }
-
-    public Set<DockerComposeValidatorErrorMessage> isValidWithErrorMessages() {
-        try {
-            return Optional.ofNullable(factory
-                    .getSchema(dockerComposeSchemaFile)
-                    .validate(objectMapper.readTree(dockerComposeFile)))
-                    .orElse(Collections.emptySet())
-                    .stream()
-                    .map(validationMessage ->
-                            new DockerComposeValidatorErrorMessage(validationMessage.getMessage(), validationMessage.getPath(), validationMessage.getType()))
-                    .collect(Collectors.toSet());
-        } catch (Throwable exception) {
-            exception.printStackTrace();
-            return Collections.emptySet();
-        }
-
-    }
-
     public boolean hasVersion(String version) {
-        if(jsonNode.isPresent() && version != null) {
-            final String versionFromComposeFile = jsonNode.get().get("version").asText();
+        if(dockerComposeJsonNode.isPresent() && version != null) {
+            final String versionFromComposeFile = dockerComposeJsonNode.get().get("version").asText();
             return version.equals(versionFromComposeFile);
         }
         return false;
     }
 
-    private void loadDockerComposeFile() {
+    private Optional<JsonNode> loadDockerComposeFile(File dockerComposeFile) {
         try {
-            jsonNode = Optional.of(objectMapper.readTree(dockerComposeFile));
-        } catch (IOException e) {
-            LOGGER.error("Unable to load docker-compose file: {}", dockerComposeFile);
+            return Optional
+                    .of(new ObjectMapper(new YAMLFactory())
+                            .reader()
+                            .readTree(FileUtils
+                                    .readFileToString(dockerComposeFile, UTF_8)));
+        } catch (Throwable e) {
+            LOGGER.error("Unable to load docker-compose file: {}", dockerComposeFile.getAbsoluteFile().getName());
         }
-    }
-
-    private String readSchemaFile() {
-        try {
-            return IOUtils
-                    .toString(ClassLoader.getSystemResourceAsStream(DOCKER_COMPOSE_SCHEMA_FILE_NAME),
-                            UTF_8);
-        } catch (IOException e) {
-            LOGGER.error("Exception while loading schema file: ", e);
-            return null;
-        }
+        return Optional.empty();
     }
 
     public boolean hasNumberOfServices(int numberOfServices) {
-        if(jsonNode.isPresent() && numberOfServices > -1) {
-            final int numberOfServicesFromComposeFile = jsonNode.get().get(SERVICES).size();
+        if(dockerComposeJsonNode.isPresent() && numberOfServices > -1) {
+            final int numberOfServicesFromComposeFile = DockerComposeUtils
+                    .getServiceCount(dockerComposeJsonNode.get());
             return numberOfServicesFromComposeFile == numberOfServices;
         }
         return false;
@@ -123,13 +72,9 @@ public class DockerComposeValidator {
     public boolean hasServices(String... services) {
         if(services != null && services.length != 0) {
             List<String> servicesList = Arrays.asList(services);
-            for (Iterator<String> it = jsonNode.get().get(SERVICES).fieldNames(); it.hasNext(); ) {
-                String service = it.next();
-                if (!servicesList.contains(service)) {
-                    return false;
-                }
-            }
-            return true;
+            List<String> servicesInDockerCompose = DockerComposeUtils
+                    .getServices(dockerComposeJsonNode.get());
+            return servicesInDockerCompose.containsAll(servicesList);
         }
         return false;
     }

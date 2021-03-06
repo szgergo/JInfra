@@ -1,0 +1,91 @@
+version: 2.1
+
+commands:
+  install_docker:
+    parameters:
+      docker_version:
+        description: Docker client version to install
+        type: string
+        default: 18.09.3
+    steps:
+      - setup_remote_docker:
+          version: << parameters.docker_version >>
+      - run:
+          name: Update repository
+          command: apt-get update
+      - run:
+          name: Install neccessary packages for docker
+          command: apt-get install -y gnupg lsb-release
+      - run:
+          name: Install docker repository
+          command: curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      - run:
+          name: Setup stable docker repository
+          command: echo  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+      - run:
+          name: Update repository
+          command: apt-get update
+      - run:
+          name: Install docker client << parameters.docker_version >>
+          command: apt-get install -y docker-ce-cli=5:<< parameters.docker_version >>~3-0~debian-buster
+      - run:
+          name: Check docker version
+          command: docker -v
+  install_docker_compose:
+    parameters:
+      docker_compose_version:
+        description: Docker compose version to install
+        type: string
+        default: 1.28.5
+    steps:
+      - run:
+          name: Install docker-compose << parameters.docker_compose_version >>
+          command: curl -L "https://github.com/docker/compose/releases/download/<< parameters.docker_compose_version >>/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      - run:
+          name: Add execution to docker-compose
+          command: chmod +x /usr/local/bin/docker-compose
+      - run:
+          name: Check docker-compose
+          command: docker-compose --version
+
+
+jobs:
+  build_with_docker:
+    parameters:
+      docker_version:
+        type: string
+      docker_compose_version:
+        type: string
+    docker:
+      - image: maven:3.6.3-openjdk-8-slim
+    steps:
+      - install_docker:
+          docker_version: << parameters.docker_version >>
+      - install_docker_compose:
+          docker_compose_version: << parameters.docker_compose_version >>
+      - checkout
+      - run:
+          name: Build and test JInfra
+          command: mvn clean install -U
+
+workflows:
+  build_and_test:
+    jobs:
+      - build_with_docker:
+          docker_version: 20.10.2
+          docker_compose_version: 1.28.5
+      - build_with_docker:
+          docker_version: 19.03.14
+          docker_compose_version: 1.28.5
+      - build_with_docker:
+          docker_version: 19.03.13
+          docker_compose_version: 1.28.5
+      - build_with_docker:
+          docker_version: 19.03.12
+          docker_compose_version: 1.28.5
+      - build_with_docker:
+          docker_version: 19.03.8
+          docker_compose_version: 1.28.5
+      - build_with_docker:
+          docker_version: 18.09.3
+          docker_compose_version: 1.28.5

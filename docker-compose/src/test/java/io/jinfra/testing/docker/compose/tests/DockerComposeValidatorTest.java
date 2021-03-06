@@ -1,6 +1,7 @@
 package io.jinfra.testing.docker.compose.tests;
 
 import io.jinfra.testing.TestConstants;
+import io.jinfra.testing.docker.compose.DockerComposeRunner;
 import io.jinfra.testing.docker.compose.DockerComposeValidator;
 import io.jinfra.testing.docker.compose.api.DockerComposeValidatorErrorMessage;
 import org.junit.Test;
@@ -35,43 +36,22 @@ public class DockerComposeValidatorTest {
 
     @Test
     public void testInvalidYamlFile() {
-        DockerComposeValidator dockerComposeValidator =
-                new DockerComposeValidator(TestConstants.getTestResource("invalid-docker-compose.yml"));
-        assertFalse(dockerComposeValidator.isValid());
+        assertFalse(DockerComposeRunner
+                .isValid(TestConstants.getTestResourceAsFile("invalid-docker-compose.yml")));
     }
 
     @Test
     public void testInvalidWithWrongKeyYamlFile() {
-        DockerComposeValidator dockerComposeValidator =
-                new DockerComposeValidator(TestConstants.getTestResource("invalid2-docker-compose.yml"));
-        assertFalse(dockerComposeValidator.isValid());
-    }
-
-    @Test
-    public void testInvalidWithWrongKeyWithErrorMessagesYamlFile() {
-        DockerComposeValidator dockerComposeValidator =
-                new DockerComposeValidator(TestConstants.getTestResource("invalid2-docker-compose.yml"));
-        final String expectedMessage = "$.versionaaaa: is not defined in the schema and the schema does not allow additional properties";
-        final String expectedPath = "$";
-        final String expectedType = "additionalProperties";
-        DockerComposeValidatorErrorMessage expectedErrorMessage =
-                new DockerComposeValidatorErrorMessage(expectedMessage, expectedPath, expectedType);
-        Set<DockerComposeValidatorErrorMessage> actualErrorMessages =
-                dockerComposeValidator.isValidWithErrorMessages();
-        
-        assertFalse(actualErrorMessages.isEmpty());
-        assertEquals(1,actualErrorMessages.size());
-        assertTrue(actualErrorMessages.contains(expectedErrorMessage));
+        assertFalse(DockerComposeRunner
+                .isValid(TestConstants.getTestResourceAsFile("invalid2-docker-compose.yml")));
     }
 
     @Test
     public void testValidYamlFile() {
-        DockerComposeValidator dockerComposeValidator =
-                new DockerComposeValidator(TestConstants.getTestResource("valid-docker-compose.yml"));
-        assertTrue(dockerComposeValidator.isValid());
+        assertTrue(DockerComposeRunner
+                .isValid(TestConstants.getTestResourceAsFile("valid-docker-compose.yml")));
+
     }
-
-
 
     @Test
     public void testCheckVersionOfDockerCompose() {
@@ -91,7 +71,7 @@ public class DockerComposeValidatorTest {
     public void testServicesList() {
         DockerComposeValidator dockerComposeValidator =
                 new DockerComposeValidator(TestConstants.getTestResource("valid-docker-compose.yml"));
-        assertTrue(dockerComposeValidator.hasServices("db","admin","roadmappio"));
+        assertTrue(dockerComposeValidator.hasServices("db_valid","admin_valid","roadmappio_valid"));
     }
 
     @Test
