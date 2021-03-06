@@ -22,11 +22,7 @@ import java.util.regex.Pattern;
 public class DockerRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DockerRunner.class);
-    private static final Pattern EXEC_TYPE_COMMAND_PATTERN = Pattern.compile("\"(.+?)\"[ ]{0,}[,|\\]]");
-    private static final String SHELL_CHECK_COMMAND = "sh -n -c ";
-    public static final int TIMEOUT_COMMAND_VALIDATION = 5;
     private static final DockerClient dockerClient;
-    private static final String DOCKER_REPOSITORY = "https://index.docker.io/v1/";
 
     static {
         final DefaultDockerClientConfig dockerConfig = DefaultDockerClientConfig
