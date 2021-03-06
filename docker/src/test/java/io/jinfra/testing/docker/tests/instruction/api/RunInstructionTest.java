@@ -1,12 +1,8 @@
 package io.jinfra.testing.docker.tests.instruction.api;
 
-import io.jinfra.testing.docker.DockerRunner;
 import io.jinfra.testing.docker.api.instructions.RunInstruction;
 import org.junit.Test;
 
-import java.io.IOException;
-
-import static io.jinfra.testing.TestConstants.getTestResource;
 import static org.junit.Assert.*;
 
 public class RunInstructionTest {
@@ -56,10 +52,5 @@ public class RunInstructionTest {
         assertFalse(runInstruction.hasShellCommand());
         assertFalse(runInstruction.hasExecCommand());
         assertNull(runInstruction.getCommand());
-    }
-
-    @Test
-    public void testExecCommandValidation() throws InterruptedException {
-        assertTrue(DockerRunner.canDockerFileBeStarted(getTestResource("Dockerfile")));
     }
 }

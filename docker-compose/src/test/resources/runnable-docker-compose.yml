@@ -1,6 +1,6 @@
 version: '3.1'
 services :
-  db_valid:
+  db_runnable:
     image: postgres:9.6.21-alpine
     ports:
       - "5432:5432"
@@ -8,17 +8,10 @@ services :
       POSTGRES_USER: user
       POSTGRES_PASSWORD: changeme
       POSTGRES_DB: roadmappio
-  admin_valid:
+  admin_runnable:
     image: adminer
     restart: always
     depends_on:
-      - db_valid
+      - db_runnable
     ports:
       - 8080:8080
-  roadmappio_valid:
-    image: roadmappio:latest
-    restart: always
-    depends_on:
-      - db_valid
-    ports:
-      - 9000:9000

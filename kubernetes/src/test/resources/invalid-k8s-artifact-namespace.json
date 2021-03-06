@@ -1,0 +1,10 @@
+{
+  "apiVersionaa": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "roadmappio",
+    "labels": {
+      "name": "roadmappio"
+    }
+  }
+}
