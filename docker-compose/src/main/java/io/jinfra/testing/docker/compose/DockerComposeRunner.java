@@ -10,7 +10,7 @@ public class DockerComposeRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DockerComposeRunner.class);
 
     public static boolean canRunDockerCompose(String dockerComposeFilePath) {
-        return new Integer(0)
+        return Integer.valueOf(0)
                 .equals(DockerComposeClient.runDockerCompose(dockerComposeFilePath));
     }
 

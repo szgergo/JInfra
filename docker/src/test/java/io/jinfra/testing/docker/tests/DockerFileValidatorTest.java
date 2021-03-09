@@ -11,6 +11,6 @@ public class DockerFileValidatorTest {
 
     @Test
     public void testLoadValidDockerFile() throws IOException {
-        DockerFileValidator dockerFileValidator = new DockerFileValidator(getTestResource("Dockerfile"));
+        new DockerFileValidator(getTestResource("Dockerfile"));
     }
 }

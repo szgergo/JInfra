@@ -1,8 +1,6 @@
 package io.jinfra.testing.docker.api.instructions;
 
 import io.jinfra.testing.docker.api.RunCommandType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -11,8 +9,6 @@ public class RunInstruction {
 
     private final String command;
     private final RunCommandType runCommandType;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RunInstruction.class);
 
     public RunInstruction(String rawParameter) {
         this.command = rawParameter == null || rawParameter.length() == 0 ? null : rawParameter;

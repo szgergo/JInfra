@@ -3,9 +3,8 @@ package io.jinfra.testing.docker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class DockerFileValidator {
 
     public DockerFileValidator(String dockerFilePath) throws IOException {
         dockerFile = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(dockerFilePath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dockerFilePath),StandardCharsets.UTF_8.name()))) {
             String line;
             StringBuilder finickyLine = new StringBuilder();
             while ((line = br.readLine()) != null) {

@@ -4,48 +4,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class ProcessRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessRunner.class);
 
-    public static Optional<CommandResponse> runCommand(String command) {
-        boolean isWindows = System.getProperty("os.name")
-                .toLowerCase().startsWith("windows");
+    public static Optional<CommandResponse> runCommand(List<String> commands) {
+        return runCommand(commands,
+                null,
+                LOGGER::info,
+                LOGGER::error);
+    }
+
+    public static Optional<CommandResponse> runCommand(List<String> commands,
+                                                       File directory,
+                                                       Consumer<String> stdOutConsumer,
+                                                       Consumer<String> stdErrConsumer) {
+        LOGGER.info("Send command to runTime: {}", commands);
+
         Process process;
         try {
-            if (isWindows) {
-                //TODO: Check if runs on windows
-                process = new ProcessBuilder()
-                        //.inheritIO()
-                        .command(command)
-                        .start();
-            } else {
-                process = new ProcessBuilder()
-                        //.inheritIO()
-                        .command(Arrays.asList(command.split(" ")))
-                        .start();
+            ProcessBuilder processBuilder = new ProcessBuilder().command(commands);
+            if(directory != null) {
+                processBuilder.directory(directory);
             }
-
+            process = processBuilder.start();
             List<String> stdOut = new ArrayList<>();
             List<String> stdErr = new ArrayList<>();
             CompletableFuture<String> soutFut = readOutStream(process.getInputStream());
             CompletableFuture<String> serrFut = readOutStream(process.getErrorStream());
             CompletableFuture<String> resultFut = soutFut.thenCombine(serrFut, (stdout, stderr) -> {
                 if (stderr != null && !stderr.isEmpty()) {
-                    LOGGER.error(stderr);
+                    stdErrConsumer.accept(stderr);
                     stdErr.add(stderr);
                 }
                 if (stdout != null && !stdout.isEmpty()) {
-                    LOGGER.info(stdout);
+                    stdOutConsumer.accept(stdout);
                     stdOut.add(stdout);
                 }
                 return stdout;
@@ -65,7 +70,7 @@ public class ProcessRunner {
             }
 
         } catch (Throwable exception) {
-            LOGGER.error("Error happened executing the command: ", exception);
+            LOGGER.error("Error happened executing the commands: ", exception);
             return Optional.empty();
         }
     }
@@ -73,7 +78,7 @@ public class ProcessRunner {
     static CompletableFuture<String> readOutStream(InputStream is) {
         return CompletableFuture.supplyAsync(() -> {
             try (
-                    InputStreamReader isr = new InputStreamReader(is);
+                    InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                     BufferedReader br = new BufferedReader(isr)
             ) {
                 StringBuilder res = new StringBuilder();
@@ -86,5 +91,23 @@ public class ProcessRunner {
                 throw new RuntimeException("problem with executing program", e);
             }
         });
+    }
+
+    public static List<String> createCommandList(Object... objects) {
+        List<String> commands = new ArrayList<>();
+
+        for (Object object : objects) {
+            if (object instanceof String) {
+                commands.add((String) object);
+            } else if (object instanceof Collection) {
+                for (Object objectElement : (Collection) object) {
+                    if (objectElement instanceof String) {
+                        commands.add((String) objectElement);
+                    }
+                }
+            }
+        }
+
+        return commands;
     }
 }
