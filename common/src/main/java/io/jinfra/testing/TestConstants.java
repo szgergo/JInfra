@@ -22,7 +22,7 @@ public class TestConstants {
     }
 
     public static String concatPaths(String... pathElements) {
-        LOGGER.debug("Path elements to concat: {}", pathElements);
+        LOGGER.info("Path elements to concat: {}", pathElements);
         if (pathElements == null || pathElements.length == 0) {
             return null;
         }
@@ -34,7 +34,7 @@ public class TestConstants {
             }
             concatenatedPath = concatenatedPath + File.separator + pathElement;
         }
-        LOGGER.debug("Concatenated path: {}", concatenatedPath);
+        LOGGER.info("Concatenated path: {}", concatenatedPath);
         return concatenatedPath;
     }
 }

@@ -84,11 +84,11 @@ public class DockerClient {
 
         LOGGER.info("Sending command to docker runTime: {}", command);
 
-        LOGGER.debug("Staring" + IMAGE_LIFECYCLE_MESSAGE, imageName, containerName);
+        LOGGER.info("Staring" + IMAGE_LIFECYCLE_MESSAGE, imageName, containerName);
         final Optional<CommandResponse> commandResponse = runCommand(command);
         if(commandResponse.isPresent()) {
             Integer processCode = commandResponse.get().getProcessResultCode();
-            LOGGER.debug("Stopping" + IMAGE_LIFECYCLE_MESSAGE, imageName, containerName);
+            LOGGER.info("Stopping" + IMAGE_LIFECYCLE_MESSAGE, imageName, containerName);
             runCommand(stopCommand);
 
             return new Integer(0)

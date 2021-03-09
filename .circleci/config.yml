@@ -48,7 +48,6 @@ commands:
           name: Check docker-compose
           command: docker-compose --version
 
-
 jobs:
   build_with_docker:
     parameters:
@@ -72,20 +71,7 @@ workflows:
   build_and_test:
     jobs:
       - build_with_docker:
-          docker_version: 20.10.2
-          docker_compose_version: 1.28.5
-      - build_with_docker:
-          docker_version: 19.03.14
-          docker_compose_version: 1.28.5
-      - build_with_docker:
-          docker_version: 19.03.13
-          docker_compose_version: 1.28.5
-      - build_with_docker:
-          docker_version: 19.03.12
-          docker_compose_version: 1.28.5
-      - build_with_docker:
-          docker_version: 19.03.8
-          docker_compose_version: 1.28.5
-      - build_with_docker:
-          docker_version: 18.09.3
-          docker_compose_version: 1.28.5
+          matrix:
+            parameters:
+              docker_version: [ "20.10.2", "19.03.14", "19.03.13", "19.03.12", "19.03.8", "18.09.3" ]
+              docker_compose_version: ["1.28.5"]

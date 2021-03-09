@@ -45,7 +45,7 @@ public class ProcessRunner {
                     stdErr.add(stderr);
                 }
                 if (stdout != null && !stdout.isEmpty()) {
-                    LOGGER.debug(stdout);
+                    LOGGER.info(stdout);
                     stdOut.add(stdout);
                 }
                 return stdout;
@@ -57,7 +57,7 @@ public class ProcessRunner {
                 Integer exitValue = process.exitValue();
                 final CommandResponse commandResponse
                         = new CommandResponse(stdOut, stdErr, exitValue);
-                LOGGER.debug("CommandResponse: {}", commandResponse);
+                LOGGER.info("CommandResponse: {}", commandResponse);
                 return Optional.of(commandResponse);
             } else {
                 LOGGER.error("Command execution timed out.");

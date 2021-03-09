@@ -36,7 +36,7 @@ public class DockerFileValidator {
             }
         }
         for (String lineFromFile : dockerFile) {
-            LOGGER.debug("Processed line: {} ", lineFromFile);
+            LOGGER.info("Processed line: {} ", lineFromFile);
         }
     }
 }
