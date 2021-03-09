@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -17,7 +17,8 @@ public class ProcessRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessRunner.class);
 
-    public static Optional<CommandResponse> runCommand(String command) {
+    public static Optional<CommandResponse> runCommand(List<String> commands) {
+        LOGGER.info("Send command to runTime: {}", commands);
         boolean isWindows = System.getProperty("os.name")
                 .toLowerCase().startsWith("windows");
         Process process;
@@ -26,12 +27,12 @@ public class ProcessRunner {
                 //TODO: Check if runs on windows
                 process = new ProcessBuilder()
                         //.inheritIO()
-                        .command(command)
+                        .command(commands)
                         .start();
             } else {
                 process = new ProcessBuilder()
                         //.inheritIO()
-                        .command(Arrays.asList(command.split(" ")))
+                        .command(commands)
                         .start();
             }
 
@@ -65,7 +66,7 @@ public class ProcessRunner {
             }
 
         } catch (Throwable exception) {
-            LOGGER.error("Error happened executing the command: ", exception);
+            LOGGER.error("Error happened executing the commands: ", exception);
             return Optional.empty();
         }
     }
@@ -86,5 +87,23 @@ public class ProcessRunner {
                 throw new RuntimeException("problem with executing program", e);
             }
         });
+    }
+
+    public static List<String> createCommandList(Object... objects) {
+        List<String> commands = new ArrayList<>();
+
+        for(Object object : objects) {
+            if(object instanceof String) {
+                commands.add((String) object);
+            } else if(object instanceof Collection) {
+                for(Object objectElement : (Collection) object) {
+                    if(objectElement instanceof  String) {
+                        commands.add((String)objectElement);
+                    }
+                }
+            }
+        }
+
+        return commands;
     }
 }

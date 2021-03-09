@@ -1,0 +1,5 @@
+FROM garethr/kubeval:0.15.0
+ARG file_to_validate
+RUN echo "${file_to_validate}" > file_to_validate.yml
+
+CMD ["kubeval", "file_to_validate.yml"]

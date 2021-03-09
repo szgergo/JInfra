@@ -74,4 +74,4 @@ workflows:
           matrix:
             parameters:
               docker_version: [ "20.10.2", "19.03.14", "19.03.13", "19.03.12", "19.03.8", "18.09.3" ]
-              docker_compose_version: ["1.28.5"]
+              docker_compose_version: ["1.28.2"]

@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static io.jinfra.testing.ProcessRunner.runCommand;
@@ -27,13 +29,18 @@ public class DockerComposeClient {
             dockerComposeCanonicalFile = dockerComposeFile.getCanonicalFile();
             final String dockerComposeFileabsolutePath = dockerComposeCanonicalFile
                     .getAbsolutePath();
-            final String command = "docker-compose -f "
-                    + dockerComposeFileabsolutePath
-                    + " up -d";
+            final List<String> command = Arrays.asList("docker-compose",
+                    "-f",
+                    dockerComposeFileabsolutePath,
+                    "up",
+                    "-d");
             final Optional<CommandResponse> commandResponse = runCommand(command);
             if (commandResponse.isPresent()) {
                 Integer processResult = commandResponse.get().getProcessResultCode();
-                final String stopCommand = "docker-compose -f " + dockerComposeFileabsolutePath + " down";
+                final List<String> stopCommand = Arrays.asList("docker-compose",
+                        "-f",
+                        dockerComposeFileabsolutePath,
+                        "down");
                 runCommand(stopCommand);
                 return processResult;
             }
@@ -47,8 +54,8 @@ public class DockerComposeClient {
     }
 
     public static String getDockerComposeClientVersion() {
-        final Optional<CommandResponse> commandResponse = runCommand("docker-compose -v");
-
+        final Optional<CommandResponse> commandResponse
+                = runCommand(Arrays.asList("docker-compose","-v"));
         if (commandResponse.isPresent()) {
             for (String stdOutLine : commandResponse.get().getStdOut()) {
                 if (stdOutLine != null && stdOutLine.contains("docker-compose version")) {
@@ -61,9 +68,10 @@ public class DockerComposeClient {
 
     public static Integer checkDockerComposeFileValidity(File dockerComposeFile) {
         try {
-            final String command = "docker-compose -f "
-                    + dockerComposeFile.getCanonicalPath()
-                    + " config";
+            final List<String> command = Arrays.asList("docker-compose",
+                    "-f"
+                    ,dockerComposeFile.getCanonicalPath()
+                    ,"config");
             final Optional<CommandResponse> commandResponse = runCommand(command);
             if (commandResponse.isPresent()) {
                 return commandResponse.get().getProcessResultCode();
@@ -77,8 +85,6 @@ public class DockerComposeClient {
     }
 
     private static boolean hasRuntimeDockerCompose() {
-        final Optional<CommandResponse> commandResponse = runCommand("docker-compose -v");
-        return commandResponse.isPresent()
-                && Integer.valueOf(0).equals(commandResponse.get().getProcessResultCode());
+        return getDockerComposeClientVersion() != null;
     }
 }
