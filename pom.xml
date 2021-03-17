@@ -5,7 +5,7 @@
     <groupId>io.jinfra</groupId>
     <artifactId>jinfra</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <description>JInfra helps testing your infrastructure from Java</description>
     <url>https://jinfra.io</url>
@@ -28,7 +28,7 @@
     <scm>
         <connection>scm:git:git@github.com:szgergo/JInfra.git</connection>
         <url>https://github.com/szgergo/JInfra</url>
-      <tag>jinfra-1.0.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <properties>
